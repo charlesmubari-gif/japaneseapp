@@ -1,5 +1,5 @@
-# Install packages before running:
-# pip install streamlit openai rapidfuzz gTTS playsound==1.2.2
+# Install required packages:
+# pip install streamlit openai rapidfuzz gTTS --quiet
 
 import streamlit as st
 from rapidfuzz import fuzz
@@ -62,7 +62,7 @@ def generate_gpt_story(cluster):
         story = f"[Error generating story: {e}]"
     return story
 
-# ---- Prepare Memory Palace Dictionary ----
+# ---- Prepare Memory Palace ----
 memory_palace = {}
 for i, cluster in enumerate(clusters):
     location = locations[i % len(locations)]
@@ -86,16 +86,14 @@ if st.button("Show Words & Story"):
         memory_palace[location]["story"] = generate_gpt_story(cluster)
 
     st.subheader("Words in this location:")
-    for word in cluster:
+    for idx, word in enumerate(cluster):
         st.write(f"{word['japanese']} ({word['romaji']}) - {word['meaning']}")
         
-        # Optional: audio playback button
-        if st.button(f"🔊 Play {word['japanese']}"):
-            tts = gTTS(text=word['japanese'], lang='ja')
-            filename = f"{word['romaji']}.mp3"
-            tts.save(filename)
-            os.system(f"start {filename}" if os.name=='nt' else f"afplay {filename}")  # Windows / Mac
-            st.success(f"Playing {word['japanese']}")
+        # Audio playback using st.audio
+        tts = gTTS(text=word['japanese'], lang='ja')
+        filename = f"{word['romaji']}_{location}.mp3"
+        tts.save(filename)
+        st.audio(filename, format='audio/mp3', start_time=0, key=f"audio_{location}_{idx}")
 
     st.subheader("Memory Palace Story:")
     st.write(memory_palace[location]["story"])
