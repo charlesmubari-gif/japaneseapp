@@ -1,13 +1,13 @@
-# Install required packages:
+# Install packages before running:
 # pip install streamlit openai rapidfuzz gTTS --quiet
 
 import streamlit as st
 from rapidfuzz import fuzz
 import openai
 from gtts import gTTS
-import os
+from io import BytesIO
 
-# ---- Set OpenAI API key securely ----
+# ---- OpenAI API key from Streamlit secrets ----
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # ---- Sample Words (Hiragana + Romaji + Meaning) ----
@@ -44,56 +44,4 @@ locations = ["Front Door", "Living Room", "Kitchen", "Bedroom", "Garden", "Balco
 
 # ---- GPT Story Generator ----
 def generate_gpt_story(cluster):
-    word_list = ", ".join([f"{w['japanese']} ({w['romaji']}) meaning {w['meaning']}" for w in cluster])
-    prompt = (
-        f"Create a short, funny, vivid story that helps someone memorize these Japanese words: {word_list}. "
-        "Each word should appear in a memorable, visual, and playful way, like a scene in a memory palace. "
-        "Make it exaggerated, easy to visualize, and fun."
-    )
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=300
-        )
-        story = response['choices'][0]['message']['content'].strip()
-    except Exception as e:
-        story = f"[Error generating story: {e}]"
-    return story
-
-# ---- Prepare Memory Palace ----
-memory_palace = {}
-for i, cluster in enumerate(clusters):
-    location = locations[i % len(locations)]
-    memory_palace[location] = {
-        "words": cluster,
-        "story": None
-    }
-
-# ---- Streamlit UI ----
-st.title("Japanese Memory Palace")
-
-# Select Palace Location
-location = st.selectbox("Choose a Palace Location", list(memory_palace.keys()))
-
-if st.button("Show Words & Story"):
-    cluster = memory_palace[location]["words"]
-    
-    # Generate GPT story if not already done
-    if memory_palace[location]["story"] is None:
-        st.info("Generating story... (may take a few seconds)")
-        memory_palace[location]["story"] = generate_gpt_story(cluster)
-
-    st.subheader("Words in this location:")
-    for idx, word in enumerate(cluster):
-        st.write(f"{word['japanese']} ({word['romaji']}) - {word['meaning']}")
-        
-        # Audio playback using st.audio
-        tts = gTTS(text=word['japanese'], lang='ja')
-        filename = f"{word['romaji']}_{location}.mp3"
-        tts.save(filename)
-        st.audio(filename, format='audio/mp3', start_time=0, key=f"audio_{location}_{idx}")
-
-    st.subheader("Memory Palace Story:")
-    st.write(memory_palace[location]["story"])
+    word_list = ", ".join([f]()_
