@@ -6,11 +6,17 @@ from rapidfuzz import fuzz
 import openai
 from gtts import gTTS
 from io import BytesIO
+import os
 
-# ---- OpenAI API key from Streamlit secrets ----
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# ---- OpenAI API key handling ----
+# Try Streamlit secrets first, fallback to environment variable
+openai.api_key = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
 
-# ---- Sample Words (Hiragana + Romaji + Meaning) ----
+if not openai.api_key:
+    st.error("OpenAI API key not found! Set it in .streamlit/secrets.toml or as an environment variable.")
+    st.stop()
+
+# ---- Sample Words ----
 words = [
     {"japanese": "ねこ", "meaning": "cat", "romaji": "neko"},
     {"japanese": "ねこ", "meaning": "sleeping child", "romaji": "neko"},
@@ -44,7 +50,6 @@ locations = ["Front Door", "Living Room", "Kitchen", "Bedroom", "Garden", "Balco
 
 # ---- GPT Story Generator ----
 def generate_gpt_story(cluster):
-    # FIXED f-string syntax
     word_list = ", ".join([f"{w['japanese']} ({w['romaji']}) meaning {w['meaning']}" for w in cluster])
     prompt = (
         f"Create a short, funny, vivid story that helps someone memorize these Japanese words: {word_list}. "
